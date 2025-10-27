@@ -197,13 +197,14 @@ export function generateTestStartReminderEmail(
   name: string,
   eventName: string,
   roundName: string,
-  startTime: Date
+  startTime: Date,
+  appName: string = "BootFeet 2K26"
 ): string {
   const formattedTime = startTime.toLocaleString('en-US', {
     dateStyle: 'full',
     timeStyle: 'short'
   });
-  
+
   return `
     <!DOCTYPE html>
     <html>
@@ -219,7 +220,7 @@ export function generateTestStartReminderEmail(
               <table role="presentation" style="width: 600px; max-width: 100%; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 <tr>
                   <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-                    <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">BootFeet 2K26</h1>
+                    <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">${appName}</h1>
                     <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Symposium Management Platform</p>
                   </td>
                 </tr>
@@ -301,7 +302,8 @@ export function generateResultPublishedEmail(
   name: string,
   eventName: string,
   score: number,
-  rank: number
+  rank: number,
+  appName: string = "BootFeet 2K26"
 ): string {
   return `
     <!DOCTYPE html>
@@ -318,7 +320,7 @@ export function generateResultPublishedEmail(
               <table role="presentation" style="width: 600px; max-width: 100%; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 <tr>
                   <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
-                    <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">BootFeet 2K26</h1>
+                    <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700;">${appName}</h1>
                     <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">Symposium Management Platform</p>
                   </td>
                 </tr>
