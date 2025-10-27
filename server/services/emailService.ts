@@ -29,17 +29,18 @@ class EmailService {
   
   constructor() {
     const resendApiKey = process.env.RESEND_API_KEY;
+    const { emailFromName } = getBrandingConfig();
     this.isDevelopmentMode = !resendApiKey;
-    
+
     if (resendApiKey) {
       this.resend = new Resend(resendApiKey);
-      this.fromEmail = process.env.RESEND_FROM_EMAIL || 'BootFeet 2K26 <onboarding@resend.dev>';
+      this.fromEmail = process.env.RESEND_FROM_EMAIL || `${emailFromName} <onboarding@resend.dev>`;
       console.log('✅ Email service initialized with Resend:');
       console.log(`   API Key: ${resendApiKey.substring(0, 10)}...`);
       console.log(`   From: ${this.fromEmail}`);
     } else {
       this.resend = null;
-      this.fromEmail = 'BootFeet 2K26 <noreply@bootfeet.com>';
+      this.fromEmail = `${emailFromName} <noreply@bootfeet.com>`;
       console.log('⚠️  Email service running in DEVELOPMENT MODE - emails will be logged, not sent');
       console.log('   Missing RESEND_API_KEY. Set this secret to enable email sending.');
     }
