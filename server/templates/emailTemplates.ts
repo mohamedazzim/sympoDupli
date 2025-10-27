@@ -403,7 +403,8 @@ export function generateAdminNotificationEmail(
   recipientEmail: string,
   recipientName: string,
   eventName: string,
-  additionalDetails: Record<string, any>
+  additionalDetails: Record<string, any>,
+  appName: string = "BootFeet 2K26"
 ): string {
   const timestamp = new Date().toLocaleString();
   const detailsHtml = Object.entries(additionalDetails)
