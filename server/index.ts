@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupWebSocket, setIO } from "./websocket";
 import { errorHandler } from "./middleware/errorHandler";
+import { globalLimiter, authLimiter, registrationLimiter } from "./middleware/rateLimiter";
 
 const app = express();
 
@@ -17,6 +18,12 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+
+// Apply rate limiting
+app.use(globalLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/registration-forms/:slug/submit', registrationLimiter);
 
 app.use((req, res, next) => {
   const start = Date.now();
