@@ -232,7 +232,8 @@ class EmailService {
     username: string,
     password: string
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const html = generateRegistrationApprovedEmail(name, eventName, username, password);
+    const { appName } = getBrandingConfig();
+    const html = generateRegistrationApprovedEmail(name, eventName, username, password, appName);
     return this.sendEmail(
       {
         to,
