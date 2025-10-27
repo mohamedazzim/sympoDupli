@@ -139,6 +139,32 @@ const getClientIp = (req: Request) => {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint for monitoring and load balancers
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Test database connection
+      await db.execute(sql`SELECT 1`);
+
+      res.status(200).json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        environment: process.env.NODE_ENV || "development",
+        database: "connected",
+        version: "1.0.0"
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        environment: process.env.NODE_ENV || "development",
+        database: "disconnected",
+        error: "Database connection failed"
+      });
+    }
+  });
+
   app.get("/api/users", requireAuth, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
     try {
       const users = await storage.getUsers()
