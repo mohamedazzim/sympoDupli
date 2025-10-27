@@ -317,9 +317,10 @@ class EmailService {
     additionalDetails: Record<string, any>
   ): Promise<void> {
     try {
+      const { appName } = getBrandingConfig();
       const superadmins = await storage.getUsers();
       const superadmin = superadmins.find(u => u.role === 'super_admin');
-      
+
       if (!superadmin || !superadmin.email) {
         console.warn('⚠️  No superadmin found to notify about email activity');
         return;
@@ -330,7 +331,8 @@ class EmailService {
         recipientEmail,
         recipientName,
         eventName,
-        additionalDetails
+        additionalDetails,
+        appName
       );
 
       const emailData = {
