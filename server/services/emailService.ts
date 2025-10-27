@@ -253,7 +253,8 @@ class EmailService {
     username: string,
     password: string
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const html = generateCredentialsEmail(name, eventName, username, password);
+    const { appName } = getBrandingConfig();
+    const html = generateCredentialsEmail(name, eventName, username, password, appName);
     return this.sendEmail(
       {
         to,
@@ -265,7 +266,7 @@ class EmailService {
       name
     );
   }
-  
+
   async sendTestStartReminder(
     to: string,
     name: string,
@@ -273,7 +274,8 @@ class EmailService {
     roundName: string,
     startTime: Date
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const html = generateTestStartReminderEmail(name, eventName, roundName, startTime);
+    const { appName } = getBrandingConfig();
+    const html = generateTestStartReminderEmail(name, eventName, roundName, startTime, appName);
     return this.sendEmail(
       {
         to,
@@ -285,7 +287,7 @@ class EmailService {
       name
     );
   }
-  
+
   async sendResultPublished(
     to: string,
     name: string,
@@ -293,7 +295,8 @@ class EmailService {
     score: number,
     rank: number
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    const html = generateResultPublishedEmail(name, eventName, score, rank);
+    const { appName } = getBrandingConfig();
+    const html = generateResultPublishedEmail(name, eventName, score, rank, appName);
     return this.sendEmail(
       {
         to,
