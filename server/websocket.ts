@@ -165,3 +165,7 @@ export let io: Server;
 export function setIO(server: Server) {
   io = server;
 }
+
+export function getIO(): Server {
+  return io;
+}
