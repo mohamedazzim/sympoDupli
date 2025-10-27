@@ -9,6 +9,12 @@ import {
   generateAdminNotificationEmail
 } from '../templates/emailTemplates';
 
+// Branding configuration helper
+const getBrandingConfig = () => ({
+  appName: process.env.APP_NAME || "BootFeet 2K26",
+  emailFromName: process.env.APP_EMAIL_FROM_NAME || "BootFeet 2K26 Team"
+});
+
 interface EmailOptions {
   to: string;
   subject: string;
