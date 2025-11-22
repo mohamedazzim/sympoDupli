@@ -55,3 +55,13 @@ externalPort = 3000
 [[ports]]
 localPort = 41481
 externalPort = 3001
+
+[userenv]
+
+[userenv.shared]
+NODE_ENV = "production"
+SMTP_HOST = "mail.turfingworld.in"
+SMTP_PORT = "465"
+SMTP_FROM = "BootFeet 2K26 <noreply@turfingworld.in>"
+RESEND_FROM_EMAIL = "BootFeet 2K26 <noreply@turfingworld.in>"
+PORT = "5000"
