@@ -45,6 +45,10 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 35153
+externalPort = 3002
+
+[[ports]]
 localPort = 40975
 externalPort = 3000
 
@@ -68,3 +72,7 @@ PGUSER = "neondb_owner"
 PGPASSWORD = "npg_skX6jIpf0ziD"
 PGDATABASE = "neondb"
 SMTP_USER = "noreply@turfingworld.in"
+TESTMAIL_API_KEY = "81bfde64-6c91-497e-a113-3fa184078d62"
+TESTMAIL_NAMESPACE = "35yzt"
+TESTMAIL_INBOX = "35yzt.test@inbox.testmail.app"
+USE_TESTMAIL = "true"

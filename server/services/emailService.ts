@@ -20,10 +20,16 @@ class EmailService {
   private resend: Resend | null;
   private isDevelopmentMode: boolean;
   private fromEmail: string;
+  private useTestmail: boolean;
+  private testmailNamespace: string;
   
   constructor() {
     const resendApiKey = process.env.RESEND_API_KEY;
     this.isDevelopmentMode = !resendApiKey;
+    
+    // Testmail configuration
+    this.useTestmail = process.env.USE_TESTMAIL === 'true';
+    this.testmailNamespace = process.env.TESTMAIL_NAMESPACE || '35yzt';
     
     if (resendApiKey) {
       this.resend = new Resend(resendApiKey);
@@ -31,12 +37,49 @@ class EmailService {
       console.log('✅ Email service initialized with Resend:');
       console.log(`   API Key: ${resendApiKey.substring(0, 10)}...`);
       console.log(`   From: ${this.fromEmail}`);
+      if (this.useTestmail) {
+        console.log('🧪 TESTMAIL MODE ENABLED - All emails redirected to testmail.app');
+        console.log(`   Namespace: ${this.testmailNamespace}`);
+      }
     } else {
       this.resend = null;
       this.fromEmail = 'BootFeet 2K26 <noreply@bootfeet.com>';
       console.log('⚠️  Email service running in DEVELOPMENT MODE - emails will be logged, not sent');
       console.log('   Missing RESEND_API_KEY. Set this secret to enable email sending.');
     }
+  }
+  
+  /**
+   * Generate a testmail.app address based on a tag
+   * Format: {namespace}.{tag}@inbox.testmail.app
+   */
+  private generateTestmailAddress(originalEmail: string, tag: string): string {
+    // Sanitize tag to be email-safe
+    const sanitizedTag = tag.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    return `${this.testmailNamespace}.${sanitizedTag}@inbox.testmail.app`;
+  }
+  
+  /**
+   * Redirect email to testmail if enabled, otherwise use original recipient
+   */
+  private getRecipientEmail(originalTo: string, emailType: string): { 
+    actualTo: string; 
+    isRedirected: boolean;
+    originalTo: string;
+  } {
+    if (!this.useTestmail) {
+      return { actualTo: originalTo, isRedirected: false, originalTo };
+    }
+    
+    // Create a unique tag based on email type and timestamp
+    const tag = `${emailType}-${Date.now()}`;
+    const testmailAddress = this.generateTestmailAddress(originalTo, tag);
+    
+    return { 
+      actualTo: testmailAddress, 
+      isRedirected: true,
+      originalTo 
+    };
   }
   
   private categorizeError(error: any): string {
@@ -166,23 +209,37 @@ class EmailService {
     templateType: string,
     recipientName?: string
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    // Get the actual recipient (redirected to testmail if enabled)
+    const recipientInfo = this.getRecipientEmail(options.to, templateType);
+    
     const emailData = {
       from: this.fromEmail,
-      to: options.to,
+      to: recipientInfo.actualTo,
       subject: options.subject,
       html: options.html
     };
+    
+    // Log redirection info
+    if (recipientInfo.isRedirected) {
+      console.log(`🧪 [TESTMAIL] Redirecting email:`);
+      console.log(`   Original recipient: ${recipientInfo.originalTo}`);
+      console.log(`   Test recipient: ${recipientInfo.actualTo}`);
+      console.log(`   View at: https://testmail.app/`);
+    }
     
     const result = await this.sendWithRetry(emailData);
     
     const metadata = {
       ...(options.metadata || {}),
-      retryCount: result.retryCount
+      retryCount: result.retryCount,
+      testmailRedirected: recipientInfo.isRedirected,
+      originalRecipient: recipientInfo.isRedirected ? recipientInfo.originalTo : undefined,
+      testmailAddress: recipientInfo.isRedirected ? recipientInfo.actualTo : undefined
     };
     
     try {
       await storage.createEmailLog({
-        recipientEmail: options.to,
+        recipientEmail: recipientInfo.isRedirected ? recipientInfo.originalTo : options.to,
         recipientName: recipientName || null,
         subject: options.subject,
         templateType,
@@ -198,13 +255,16 @@ class EmailService {
       if (this.isDevelopmentMode) {
         console.log(`✅ [DEV MODE] Email logged successfully: ${templateType} to ${options.to}`);
       } else {
-        console.log(`✅ Email sent successfully to ${options.to} (${templateType})`);
+        const displayTo = recipientInfo.isRedirected 
+          ? `${recipientInfo.actualTo} (originally ${recipientInfo.originalTo})` 
+          : options.to;
+        console.log(`✅ Email sent successfully to ${displayTo} (${templateType})`);
       }
       
       const eventName = options.metadata?.eventName || 'N/A';
       this.notifySuperAdmin(
         templateType,
-        options.to,
+        recipientInfo.originalTo,
         recipientName || 'Unknown',
         eventName,
         options.metadata || {}
@@ -322,25 +382,56 @@ class EmailService {
         additionalDetails
       );
 
+      // For admin notifications, also use testmail if enabled
+      const recipientInfo = this.getRecipientEmail(superadmin.email, 'admin_notification');
+
       const emailData = {
         from: this.fromEmail,
-        to: superadmin.email,
+        to: recipientInfo.actualTo,
         subject: `📧 Email Activity: ${emailType} sent to ${recipientName}`,
         html
       };
 
       if (this.isDevelopmentMode || !this.resend) {
         console.log('\n📧 [DEV MODE] Admin notification would be sent:');
-        console.log('   To:', superadmin.email);
+        console.log('   To:', recipientInfo.actualTo);
         console.log('   Subject:', emailData.subject);
       } else {
         const result = await this.resend.emails.send(emailData);
         if (!result.error) {
-          console.log(`✅ Admin notification sent to ${superadmin.email}`);
+          console.log(`✅ Admin notification sent to ${recipientInfo.actualTo}`);
         }
       }
     } catch (error) {
       console.error('❌ Failed to send admin notification:', error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+  
+  /**
+   * Verify if an email was received on testmail.app
+   * Useful for testing/debugging email delivery
+   */
+  async verifyTestmailEmail(tag: string): Promise<any> {
+    if (!this.useTestmail) {
+      throw new Error('Testmail verification only available when USE_TESTMAIL is enabled');
+    }
+    
+    const apiKey = process.env.TESTMAIL_API_KEY;
+    if (!apiKey) {
+      throw new Error('TESTMAIL_API_KEY not configured');
+    }
+    
+    try {
+      const response = await fetch(
+        `https://api.testmail.app/api/json?apikey=${apiKey}&namespace=${this.testmailNamespace}&tag=${tag}&limit=1`,
+        { method: 'GET' }
+      );
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Failed to verify testmail email:', error);
+      throw error;
     }
   }
 }
