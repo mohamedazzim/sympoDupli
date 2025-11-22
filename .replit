@@ -45,7 +45,7 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 37031
+localPort = 33473
 externalPort = 3002
 
 [[ports]]
@@ -65,3 +65,10 @@ SMTP_PORT = "465"
 SMTP_FROM = "BootFeet 2K26 <noreply@turfingworld.in>"
 RESEND_FROM_EMAIL = "BootFeet 2K26 <noreply@turfingworld.in>"
 PORT = "5000"
+DATABASE_URL = "postgresql://neondb_owner:npg_skX6jIpf0ziD@ep-bold-math-adrsqxsc-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
+PGHOST = "ep-bold-math-adrsqxsc-pooler.c-2.us-east-1.aws.neon.tech"
+PGPORT = "5432"
+PGUSER = "neondb_owner"
+PGPASSWORD = "npg_skX6jIpf0ziD"
+PGDATABASE = "neondb"
+SMTP_USER = "noreply@turfingworld.in"
