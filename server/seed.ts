@@ -41,19 +41,23 @@ async function seed() {
   await clearDatabase();
 
   // Hash the given password
-  const hashedPassword = await bcrypt.hash('Azzi@03', 10);
+  const hashedPassword = await bcrypt.hash('admin123', 10);
 
   console.log('Creating super admin user...');
   await db.insert(users).values({
-    username: 'superadmin',
+    username: 'admin',
     password: hashedPassword,
-    email: 'superadmin@example.com',   // you can update this
-    fullName: 'Mohamed Azzim',      // you can update this
+    email: 'admin@example.com',
+    fullName: 'Super Admin',
     role: 'super_admin',
     phone: '+916380083647'
   });
 
   console.log('✅ Superadmin created successfully!');
+  console.log('');
+  console.log('Login Credentials:');
+  console.log('Username: admin');
+  console.log('Password: admin123');
 }
 
 seed()
