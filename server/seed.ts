@@ -40,24 +40,29 @@ async function seed() {
 
   await clearDatabase();
 
-  // Hash the given password
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // Hash the password: Azzi@03
+  const hashedPassword = await bcrypt.hash('Azzi@03', 10);
 
-  console.log('Creating super admin user...');
+  console.log('Creating ONLY superadmin user...');
   await db.insert(users).values({
-    username: 'admin',
+    username: 'superadmin',
     password: hashedPassword,
-    email: 'admin@example.com',
-    fullName: 'Super Admin',
+    email: 'superadmin@example.com',
+    fullName: 'Mohamed Azzim',
     role: 'super_admin',
     phone: '+916380083647'
   });
 
   console.log('✅ Superadmin created successfully!');
   console.log('');
-  console.log('Login Credentials:');
-  console.log('Username: admin');
-  console.log('Password: admin123');
+  console.log('═══════════════════════════════════════');
+  console.log('  SUPERADMIN LOGIN CREDENTIALS');
+  console.log('═══════════════════════════════════════');
+  console.log('  Username: superadmin');
+  console.log('  Password: Azzi@03');
+  console.log('═══════════════════════════════════════');
+  console.log('');
+  console.log('Note: Superadmin will create all other users from the dashboard.');
 }
 
 seed()
