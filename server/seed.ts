@@ -47,7 +47,7 @@ async function seed() {
   await db.insert(users).values({
     username: 'superadmin',
     password: hashedPassword,
-    email: 'superadmin@example.com',
+    email: 'azzimandabdullah1@gmail.com',
     fullName: 'Mohamed Azzim',
     role: 'super_admin',
     phone: '+916380083647'
@@ -60,6 +60,7 @@ async function seed() {
   console.log('═══════════════════════════════════════');
   console.log('  Username: superadmin');
   console.log('  Password: Azzi@03');
+  console.log('  Email: azzimandabdullah1@gmail.com');
   console.log('═══════════════════════════════════════');
   console.log('');
   console.log('Note: Superadmin will create all other users from the dashboard.');
