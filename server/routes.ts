@@ -529,6 +529,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: event.name,
             description: event.description,
             category: event.category,
+            startDate: event.startDate,
+            endDate: event.endDate,
             rounds: rounds.map((r) => ({
               id: r.id,
               name: r.name,
@@ -2306,7 +2308,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Registration has already been processed" })
       }
 
-      const password = generateSecurePassword()
       const userData = registration.submittedData
 
       const extractEmail = (data: Record<string, string>): string => {
@@ -2331,27 +2332,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullName = extractFullName(userData)
 
       const existingUser = await storage.getUserByEmail(email)
+      let targetUser = existingUser
+      let password = ""
+      let isExistingUser = false
+
       if (existingUser) {
-        return res.status(400).json({ message: "A user with this email already exists. Please use a different email or contact support." })
+        isExistingUser = true
+        targetUser = existingUser
+      } else {
+        password = generateSecurePassword()
+        const hashedPassword = await bcrypt.hash(password, 10)
+        const username = `${email.split('@')[0]}_${nanoid(6)}`.toLowerCase()
+        targetUser = await storage.createUser({
+          username: username,
+          password: hashedPassword,
+          email: email,
+          fullName: fullName,
+          role: "participant",
+        } as any)
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10)
-      const username = `${email.split('@')[0]}_${nanoid(6)}`.toLowerCase()
-      const newUser = await storage.createUser({
-        username: username,
-        password: hashedPassword,
-        email: email,
-        fullName: fullName,
-        role: "participant",
-      } as any)
-
       const eventCredentialsList = []
+      const skippedEvents = []
+      const existingCredentialsList = []
 
       for (const eventId of registration.selectedEvents) {
-        await storage.createParticipant(newUser.id, eventId)
-
         const event = await storage.getEventById(eventId)
         if (!event) continue
+
+        const existingParticipant = await storage.getParticipantByUserAndEvent(targetUser!.id, eventId)
+        
+        if (!existingParticipant) {
+          await storage.createParticipant(targetUser!.id, eventId)
+        }
+
+        const existingCredential = await storage.getEventCredentialByUserAndEvent(targetUser!.id, eventId)
+        
+        if (existingCredential) {
+          existingCredentialsList.push({
+            eventId,
+            eventName: event.name,
+            eventUsername: existingCredential.eventUsername,
+            eventPassword: existingCredential.eventPassword,
+          })
+          if (existingParticipant) {
+            skippedEvents.push(event.name)
+          }
+          continue
+        }
 
         const count = await storage.getEventCredentialCountForEvent(eventId)
         const counter = count + 1
@@ -2361,7 +2389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           counter,
         )
 
-        await storage.createEventCredential(newUser.id, eventId, eventUsername, eventPassword)
+        await storage.createEventCredential(targetUser!.id, eventId, eventUsername, eventPassword)
 
         eventCredentialsList.push({
           eventId,
@@ -2371,9 +2399,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       }
 
-      const updated = await storage.updateRegistrationStatus(req.params.id, "paid", newUser.id, user.id)
+      const updated = await storage.updateRegistrationStatus(req.params.id, "paid", targetUser!.id, user.id)
 
-      // Send emails in background (non-blocking)
       for (const eventCred of eventCredentialsList) {
         emailService.sendRegistrationApproved(
           email,
@@ -2386,15 +2413,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       }
 
-      res.json({
+      const allCredentials = [...eventCredentialsList, ...existingCredentialsList]
+      
+      const response: any = {
         registration: updated,
-        mainCredentials: {
-          username: newUser.username,
+        eventCredentials: allCredentials,
+        newCredentials: eventCredentialsList,
+        isExistingUser,
+      }
+
+      if (isExistingUser) {
+        response.mainCredentials = {
+          username: targetUser!.username,
+          email: targetUser!.email,
+          note: "User already exists. They can use their existing login credentials.",
+        }
+        if (existingCredentialsList.length > 0) {
+          response.existingCredentials = existingCredentialsList
+        }
+        if (skippedEvents.length > 0) {
+          response.skippedEvents = skippedEvents
+          response.note = `User was already registered for: ${skippedEvents.join(", ")}`
+        }
+      } else {
+        response.mainCredentials = {
+          username: targetUser!.username,
           password: password,
-          email: newUser.email,
-        },
-        eventCredentials: eventCredentialsList,
-      })
+          email: targetUser!.email,
+        }
+      }
+
+      res.json(response)
     } catch (error) {
       console.error("Approve registration error:", error)
       res.status(500).json({ message: "Internal server error" })

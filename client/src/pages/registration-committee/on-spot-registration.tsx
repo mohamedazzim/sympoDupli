@@ -140,9 +140,9 @@ export default function OnSpotRegistrationPage() {
     },
   });
 
-  const activeEvents = events?.filter(e => e.status === 'active') || [];
-  const technicalEvents = activeEvents.filter(e => e.category === 'technical');
-  const nonTechnicalEvents = activeEvents.filter(e => e.category === 'non_technical');
+  const availableEvents = events?.filter(e => e.status === 'active' || e.status === 'draft') || [];
+  const technicalEvents = availableEvents.filter(e => e.category === 'technical');
+  const nonTechnicalEvents = availableEvents.filter(e => e.category === 'non_technical');
 
   const selectedEvents = form.watch('selectedEvents');
   const selectedTechnicalCount = selectedEvents?.filter(id => 

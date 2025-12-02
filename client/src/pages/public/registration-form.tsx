@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { RegistrationForm, Event } from "@shared/schema";
 
 interface EventWithRounds extends Event {
-  rounds?: Array<{ startTime: Date; endTime: Date }>;
+  rounds?: Array<{ startTime: Date | string | null; endTime: Date | string | null }>;
 }
 
 export default function PublicRegistrationFormPage() {
@@ -68,6 +68,8 @@ export default function PublicRegistrationFormPage() {
 
     for (const r1 of e1.rounds) {
       for (const r2 of e2.rounds) {
+        if (!r1.startTime || !r1.endTime || !r2.startTime || !r2.endTime) continue;
+        
         const start1 = new Date(r1.startTime);
         const end1 = new Date(r1.endTime);
         const start2 = new Date(r2.startTime);
@@ -90,11 +92,37 @@ export default function PublicRegistrationFormPage() {
   };
 
   const formatEventTime = (event: EventWithRounds): string => {
-    if (!event.rounds || event.rounds.length === 0) return 'Time TBA';
+    if (!event.rounds || event.rounds.length === 0) {
+      if (event.startDate) {
+        const startDate = new Date(event.startDate);
+        if (event.endDate) {
+          const endDate = new Date(event.endDate);
+          return `${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        return startDate.toLocaleDateString();
+      }
+      return 'Time TBA';
+    }
     
     const firstRound = event.rounds[0];
+    if (!firstRound.startTime || !firstRound.endTime) {
+      if (event.startDate) {
+        const startDate = new Date(event.startDate);
+        if (event.endDate) {
+          const endDate = new Date(event.endDate);
+          return `${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+        return startDate.toLocaleDateString();
+      }
+      return 'Time TBA';
+    }
+    
     const startDate = new Date(firstRound.startTime);
     const endDate = new Date(firstRound.endTime);
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return 'Time TBA';
+    }
     
     return `${startDate.toLocaleDateString()} ${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
