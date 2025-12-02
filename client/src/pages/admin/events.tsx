@@ -124,6 +124,7 @@ export default function EventsPage() {
                   <TableRow>
                     <TableHead>Event Name</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -136,6 +137,7 @@ export default function EventsPage() {
                         {event.name}
                       </TableCell>
                       <TableCell>{getTypeBadge(event.type)}</TableCell>
+                      <TableCell>{getStatusBadge(event.status)}</TableCell>
                       <TableCell>
                         {event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}
                       </TableCell>
