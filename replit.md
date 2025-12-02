@@ -79,3 +79,15 @@ A comprehensive React-based web application for managing symposium events with r
 - Email notifications
 - Credential management (CSV/PDF export)
 - Super admin override capabilities with audit logging
+
+## Recent Updates (December 2, 2025)
+### Question Management for Event Admins
+- Added DELETE endpoint (`/api/rounds/:roundId/questions/:questionId`) with proper authorization
+- Added PATCH endpoint with comprehensive validation:
+  - Type-specific validation (MCQ, True/False, Coding, Short Answer)
+  - Cross-field validation (correctAnswer must be in options for MCQ)
+  - Type change validation (requires relevant fields when switching types)
+  - Automatic cleanup of incompatible fields when type changes
+- Frontend question edit page with full form validation
+- Delete confirmation dialog in round-questions page
+- Authorization: Only assigned event admins can manage questions for their events
