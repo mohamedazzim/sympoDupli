@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation, useRoute } from 'wouter';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import type { User } from '@shared/schema';
@@ -26,6 +26,7 @@ export default function EventAdminEditPage() {
   const [, navigate] = useLocation();
   const [, params] = useRoute('/admin/event-admins/:id/edit');
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
   const adminId = params?.id;
 
   const { data: users, isLoading } = useQuery<User[]>({
@@ -180,7 +181,23 @@ export default function EventAdminEditPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Enter new password (optional)" autoComplete="new-password" {...field} data-testid="input-password" />
+                        <div className="relative">
+                          <Input type={showPassword ? "text" : "password"} placeholder="Enter new password (optional)" autoComplete="new-password" {...field} data-testid="input-password" />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            data-testid="button-toggle-password"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormDescription>
                         Leave empty to keep current password

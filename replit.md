@@ -188,3 +188,25 @@ Pages 2, 5-18, 20-47 (Super Admin, Event Admin, Participant, Registration Commit
 - Improving browser password manager integration
 - Reducing accessibility warnings in browser console
 - Pages fixed: 5/47 with proper autocomplete attributes
+
+### UI Improvements (December 2, 2025)
+- Added password visibility toggle (eye icon) to all login/password pages:
+  - Login page (`/login`)
+  - Registration Committee Create (`/admin/registration-committee/create`)
+  - Event Admin Create (`/admin/event-admins/create`)
+  - Event Admin Edit (`/admin/event-admins/:id/edit`)
+- Fixed event type display (now shows Technical/Non-Technical instead of 'general')
+- Fixed event status (removed 'draft' status, now uses 'active'/'completed')
+
+## Pending Integrations
+
+### Google Sheets Registration Sync (Not Yet Configured)
+To sync registrations to Google Sheets, you need to:
+1. Create a Google Cloud Service Account
+2. Enable Google Sheets API in your project
+3. Share the target spreadsheet with the service account email
+4. Add the following secrets to Replit:
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL` - Service account email
+   - `GOOGLE_PRIVATE_KEY` - Private key from JSON credentials
+
+Target Spreadsheet: `1cpOwiKVJeMkjTWf3-n-7ArHWR9BLIGKO6ecaZ4C8_1U`
