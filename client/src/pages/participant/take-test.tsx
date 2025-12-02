@@ -748,7 +748,7 @@ export default function TakeTestPage() {
                 value={answers[currentQuestion.id] || ''}
                 onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
               >
-                {Array.isArray(currentQuestion.options) ? currentQuestion.options.map((option: any, index: number) => (
+                {Array.isArray(currentQuestion.options) ? (currentQuestion.options as string[]).map((option: string, index: number) => (
                   <div key={index} className="flex items-center space-x-2 p-3 rounded border hover:bg-gray-50">
                     <RadioGroupItem value={String(option)} id={`option-${index}`} data-testid={`radio-option-${index}`} />
                     <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer">
