@@ -140,7 +140,7 @@ export default function EventAdminCreatePage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Enter email" {...field} data-testid="input-email" />
+                        <Input type="email" placeholder="Enter email" autoComplete="email" {...field} data-testid="input-email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,7 +154,7 @@ export default function EventAdminCreatePage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Enter password" {...field} data-testid="input-password" />
+                        <Input type="password" placeholder="Enter password" autoComplete="new-password" {...field} data-testid="input-password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -116,7 +116,7 @@ export default function RegistrationCommitteeCreatePage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="john@example.com" {...field} data-testid="input-email" />
+                        <Input type="email" placeholder="john@example.com" autoComplete="email" {...field} data-testid="input-email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -130,7 +130,7 @@ export default function RegistrationCommitteeCreatePage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••" {...field} data-testid="input-password" />
+                        <Input type="password" placeholder="••••••" autoComplete="new-password" {...field} data-testid="input-password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

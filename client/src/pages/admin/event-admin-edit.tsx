@@ -163,7 +163,7 @@ export default function EventAdminEditPage() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Enter new email (optional)" {...field} data-testid="input-email" />
+                        <Input type="email" placeholder="Enter new email (optional)" autoComplete="email" {...field} data-testid="input-email" />
                       </FormControl>
                       <FormDescription>
                         Leave empty to keep current email
@@ -180,7 +180,7 @@ export default function EventAdminEditPage() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Enter new password (optional)" {...field} data-testid="input-password" />
+                        <Input type="password" placeholder="Enter new password (optional)" autoComplete="new-password" {...field} data-testid="input-password" />
                       </FormControl>
                       <FormDescription>
                         Leave empty to keep current password

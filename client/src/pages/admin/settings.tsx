@@ -97,6 +97,7 @@ export default function AdminSettings() {
                         value={systemSettings.email.apiKey || ""}
                         disabled
                         type="password"
+                        autoComplete="off"
                         data-testid="input-email-apikey"
                       />
                       <p className="text-xs text-green-600">✓ Configured</p>
