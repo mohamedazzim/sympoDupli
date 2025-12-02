@@ -31,6 +31,10 @@ export default function RegistrationFormCreatePage() {
   const [formFields, setFormFields] = useState<FormField[]>([
     { id: nanoid(), label: 'Full Name', type: 'text', required: true, placeholder: 'Enter your full name' },
     { id: nanoid(), label: 'Email', type: 'email', required: true, placeholder: 'your.email@example.com' },
+    { id: nanoid(), label: 'Phone Number', type: 'tel', required: true, placeholder: 'Enter your 10-digit mobile number' },
+    { id: nanoid(), label: 'Department', type: 'text', required: true, placeholder: 'e.g., Computer Science' },
+    { id: nanoid(), label: 'Year', type: 'text', required: true, placeholder: 'e.g., 2nd Year' },
+    { id: nanoid(), label: 'College', type: 'text', required: true, placeholder: 'Enter your college name' },
   ]);
   const [createdForm, setCreatedForm] = useState<RegistrationForm | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
