@@ -198,6 +198,15 @@ Pages 2, 5-18, 20-47 (Super Admin, Event Admin, Participant, Registration Commit
 - Fixed event type display (now shows Technical/Non-Technical instead of 'general')
 - Fixed event status (removed 'draft' status, now uses 'active'/'completed')
 
+### On-Spot Registration Enhancements (December 2, 2025)
+- **Event Conflict Validation**: Added validation to prevent selecting events with the same start time
+  - Backend: `validateEventSelection` now checks if events share the same `startDate` timestamp
+  - Frontend: Conflicting events are disabled with a clear "Conflicts with [event name]" message
+- **Dashboard On-Spot Count**: Added new stat card showing on-spot registration count
+  - Dashboard now displays 4 cards: Total Registrations, Pending, Approved, On-Spot Registrations
+  - On-spot count fetched from `/api/registration-committee/participants` endpoint
+- **Registration Committee Editing**: Added ability to edit committee member details (fullName, username, email, password)
+
 ## Pending Integrations
 
 ### Google Sheets Registration Sync (Not Yet Configured)
