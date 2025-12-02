@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, UserCheck } from 'lucide-react';
+import { Plus, UserCheck, Pencil } from 'lucide-react';
 import AdminLayout from '@/components/layouts/AdminLayout';
 
 export default function RegistrationCommitteePage() {
@@ -91,6 +91,7 @@ export default function RegistrationCommitteePage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Username</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -103,6 +104,16 @@ export default function RegistrationCommitteePage() {
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           Active
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setLocation(`/admin/registration-committee/${user.id}/edit`)}
+                          data-testid={`button-edit-committee-${user.id}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

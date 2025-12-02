@@ -9,7 +9,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserCredentials(userId: string, updates: { username?: string; email?: string; password?: string }): Promise<User | undefined>;
+  updateUserCredentials(userId: string, updates: { username?: string; email?: string; password?: string; fullName?: string }): Promise<User | undefined>;
   deleteUser(userId: string): Promise<void>;
   getOrphanedEventAdmins(): Promise<User[]>;
   
@@ -143,7 +143,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserCredentials(userId: string, updates: { username?: string; email?: string; password?: string }): Promise<User | undefined> {
+  async updateUserCredentials(userId: string, updates: { username?: string; email?: string; password?: string; fullName?: string }): Promise<User | undefined> {
     if (updates.username) {
       const existingUser = await this.getUserByUsername(updates.username);
       if (existingUser && existingUser.id !== userId) {
@@ -162,6 +162,7 @@ export class DatabaseStorage implements IStorage {
     if (updates.username !== undefined) updateData.username = updates.username;
     if (updates.email !== undefined) updateData.email = updates.email;
     if (updates.password !== undefined) updateData.password = updates.password;
+    if (updates.fullName !== undefined) updateData.fullName = updates.fullName;
 
     const [user] = await db.update(users).set(updateData).where(eq(users.id, userId)).returning();
     return user;

@@ -150,15 +150,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/users/:id/credentials", requireAuth, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
     try {
-      const { username, email, password } = req.body
+      const { username, email, password, fullName } = req.body
 
-      if (!username && !email && !password) {
-        return res.status(400).json({ message: "At least one field (username, email, or password) must be provided" })
+      if (!username && !email && !password && !fullName) {
+        return res.status(400).json({ message: "At least one field (username, email, password, or fullName) must be provided" })
       }
 
       const updates: any = {}
       if (username !== undefined) updates.username = username
       if (email !== undefined) updates.email = email
+      if (fullName !== undefined) updates.fullName = fullName
       if (password !== undefined) {
         const hashedPassword = await bcrypt.hash(password, 10)
         updates.password = hashedPassword

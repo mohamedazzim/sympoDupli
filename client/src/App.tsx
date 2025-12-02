@@ -46,6 +46,7 @@ import RegistrationFormEditPage from "@/pages/admin/registration-form-edit";
 import AdminRegistrationsPage from "@/pages/admin/registrations";
 import RegistrationCommitteePage from "@/pages/admin/registration-committee";
 import RegistrationCommitteeCreatePage from "@/pages/admin/registration-committee-create";
+import RegistrationCommitteeEditPage from "@/pages/admin/registration-committee-edit";
 import RegistrationCommitteeDashboard from "@/pages/registration-committee/dashboard";
 import RegistrationCommitteeRegistrationsPage from "@/pages/registration-committee/registrations";
 import OnSpotRegistrationPage from "@/pages/registration-committee/on-spot-registration";
@@ -160,6 +161,9 @@ function Router() {
       </Route>
       <Route path="/admin/registration-committee/create">
         <ProtectedRoute component={RegistrationCommitteeCreatePage} allowedRoles={['super_admin']} />
+      </Route>
+      <Route path="/admin/registration-committee/:id/edit">
+        <ProtectedRoute component={RegistrationCommitteeEditPage} allowedRoles={['super_admin']} />
       </Route>
       <Route path="/admin/super-admin-overrides">
         <ProtectedRoute component={SuperAdminOverridesPage} allowedRoles={['super_admin']} />
