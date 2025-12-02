@@ -1,23 +1,54 @@
 import { useParams, useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import EventAdminLayout from '@/components/layouts/EventAdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Plus, Edit, FileQuestion, Trash2 } from 'lucide-react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Question } from '@shared/schema';
 
 export default function RoundQuestionsPage() {
   const { roundId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [questionToDelete, setQuestionToDelete] = useState<Question | null>(null);
 
   const { data: questions, isLoading } = useQuery<Question[]>({
     queryKey: ['/api/rounds', roundId, 'questions'],
     enabled: !!roundId,
   });
+
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      await apiRequest('DELETE', `/api/rounds/${roundId}/questions/${questionId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/rounds', roundId, 'questions'] });
+      toast({
+        title: 'Question Deleted',
+        description: 'The question has been successfully deleted.',
+      });
+      setQuestionToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete question',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleDeleteConfirm = () => {
+    if (questionToDelete) {
+      deleteQuestionMutation.mutate(questionToDelete.id);
+    }
+  };
 
   const getQuestionTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
@@ -138,6 +169,16 @@ export default function RoundQuestionsPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setQuestionToDelete(question)}
+                            data-testid={`button-delete-${question.id}`}
+                            title="Delete Question"
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -147,6 +188,28 @@ export default function RoundQuestionsPage() {
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog open={!!questionToDelete} onOpenChange={(open) => !open && setQuestionToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Question</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete question #{questionToDelete?.questionNumber}? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                data-testid="button-confirm-delete"
+                disabled={deleteQuestionMutation.isPending}
+              >
+                {deleteQuestionMutation.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </EventAdminLayout>
   );

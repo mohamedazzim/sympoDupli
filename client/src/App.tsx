@@ -29,6 +29,7 @@ import RoundEditPage from "@/pages/event-admin/round-edit";
 import RoundQuestionsPage from "@/pages/event-admin/round-questions";
 import RoundRulesPage from "@/pages/event-admin/round-rules";
 import QuestionCreatePage from "@/pages/event-admin/question-create";
+import QuestionEditPage from "@/pages/event-admin/question-edit";
 import QuestionsBulkUploadPage from "@/pages/event-admin/questions-bulk-upload";
 import EventParticipantsPage from "@/pages/event-admin/event-participants";
 import AllParticipantsPage from "@/pages/event-admin/all-participants";
@@ -199,6 +200,9 @@ function Router() {
       </Route>
       <Route path="/event-admin/rounds/:roundId/questions/bulk-upload">
         <ProtectedRoute component={QuestionsBulkUploadPage} allowedRoles={['event_admin']} />
+      </Route>
+      <Route path="/event-admin/rounds/:roundId/questions/:questionId/edit">
+        <ProtectedRoute component={QuestionEditPage} allowedRoles={['event_admin']} />
       </Route>
       <Route path="/event-admin/rounds/:roundId/questions">
         <ProtectedRoute component={RoundQuestionsPage} allowedRoles={['event_admin']} />

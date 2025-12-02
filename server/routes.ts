@@ -1117,6 +1117,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   )
 
+  app.get(
+    "/api/rounds/:roundId/questions/:questionId",
+    requireAuth,
+    requireRoundAccess,
+    async (req: AuthRequest, res: Response) => {
+      try {
+        const { questionId, roundId } = req.params
+        const question = await storage.getQuestion(questionId)
+        
+        if (!question) {
+          return res.status(404).json({ message: "Question not found" })
+        }
+        
+        if (question.roundId !== roundId) {
+          return res.status(400).json({ message: "Question does not belong to this round" })
+        }
+        
+        res.json(question)
+      } catch (error) {
+        console.error("Get question error:", error)
+        res.status(500).json({ message: "Internal server error" })
+      }
+    },
+  )
+
   app.post(
     "/api/rounds/:roundId/questions",
     requireAuth,
@@ -1213,6 +1238,215 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       } catch (error) {
         console.error("Bulk create questions error:", error)
+        res.status(500).json({ message: "Internal server error" })
+      }
+    },
+  )
+
+  app.patch(
+    "/api/rounds/:roundId/questions/:questionId",
+    requireAuth,
+    requireEventAdmin,
+    requireRoundAccess,
+    async (req: AuthRequest, res: Response) => {
+      try {
+        const { questionId } = req.params
+        const {
+          questionType,
+          questionText,
+          questionNumber,
+          points,
+          options,
+          correctAnswer,
+          expectedOutput,
+          testCases,
+        } = req.body
+
+        const existingQuestion = await storage.getQuestion(questionId)
+        if (!existingQuestion) {
+          return res.status(404).json({ message: "Question not found" })
+        }
+
+        if (existingQuestion.roundId !== req.params.roundId) {
+          return res.status(400).json({ message: "Question does not belong to this round" })
+        }
+
+        const updateData: any = {}
+        
+        // Determine the effective question type (new or existing)
+        const effectiveQuestionType = questionType !== undefined ? questionType : existingQuestion.questionType
+        const typeIsChanging = questionType !== undefined && questionType !== existingQuestion.questionType
+        
+        // Validate question type
+        if (questionType !== undefined) {
+          const validTypes = ['mcq', 'true_false', 'short_answer', 'coding', 'multiple_choice']
+          if (!validTypes.includes(questionType)) {
+            return res.status(400).json({ message: "Invalid question type" })
+          }
+          updateData.questionType = questionType
+        }
+        
+        // Validate question text
+        if (questionText !== undefined) {
+          if (typeof questionText !== 'string' || questionText.trim().length === 0) {
+            return res.status(400).json({ message: "Question text is required" })
+          }
+          updateData.questionText = questionText.trim()
+        }
+        
+        // Validate question number
+        if (questionNumber !== undefined) {
+          if (typeof questionNumber !== 'number' || questionNumber < 1) {
+            return res.status(400).json({ message: "Question number must be a positive number" })
+          }
+          updateData.questionNumber = questionNumber
+        }
+        
+        // Validate points
+        if (points !== undefined) {
+          if (typeof points !== 'number' || points < 1) {
+            return res.status(400).json({ message: "Points must be a positive number" })
+          }
+          updateData.points = points
+        }
+        
+        // Handle MCQ type questions
+        if (effectiveQuestionType === 'mcq' || effectiveQuestionType === 'multiple_choice') {
+          // If changing to MCQ type, require options and correctAnswer
+          if (typeIsChanging) {
+            if (options === undefined || correctAnswer === undefined) {
+              return res.status(400).json({ 
+                message: "Changing to MCQ requires both options and correctAnswer" 
+              })
+            }
+          }
+          
+          // Validate options if provided
+          if (options !== undefined) {
+            if (!Array.isArray(options) || options.length < 2) {
+              return res.status(400).json({ message: "MCQ questions require at least 2 options" })
+            }
+            const validOptions = options.filter((opt: any) => typeof opt === 'string' && opt.trim() !== '')
+            if (validOptions.length < 2) {
+              return res.status(400).json({ message: "MCQ questions require at least 2 non-empty options" })
+            }
+            updateData.options = validOptions
+            
+            // If options are updated, verify correctAnswer is still valid
+            const effectiveCorrectAnswer = correctAnswer !== undefined ? correctAnswer : existingQuestion.correctAnswer
+            if (effectiveCorrectAnswer && !validOptions.includes(effectiveCorrectAnswer)) {
+              if (correctAnswer === undefined) {
+                return res.status(400).json({ 
+                  message: "New options do not include the current correct answer. Please provide a new correctAnswer." 
+                })
+              }
+            }
+          }
+          
+          // Validate correctAnswer
+          if (correctAnswer !== undefined) {
+            const effectiveOptions = options !== undefined ? updateData.options : existingQuestion.options
+            if (!Array.isArray(effectiveOptions) || !effectiveOptions.includes(correctAnswer)) {
+              return res.status(400).json({ message: "Correct answer must be one of the options" })
+            }
+            updateData.correctAnswer = correctAnswer
+          }
+          
+          // Clear incompatible fields when changing to MCQ
+          if (typeIsChanging) {
+            updateData.expectedOutput = null
+            updateData.testCases = null
+          }
+        }
+        // Handle True/False type questions
+        else if (effectiveQuestionType === 'true_false') {
+          // If changing to true_false, require correctAnswer
+          if (typeIsChanging) {
+            if (correctAnswer === undefined) {
+              return res.status(400).json({ 
+                message: "Changing to True/False requires a correctAnswer ('True' or 'False')" 
+              })
+            }
+          }
+          
+          if (correctAnswer !== undefined) {
+            if (!['True', 'False'].includes(correctAnswer)) {
+              return res.status(400).json({ 
+                message: "Correct answer for True/False must be 'True' or 'False'" 
+              })
+            }
+            updateData.correctAnswer = correctAnswer
+          } else if (!typeIsChanging) {
+            // Existing true_false question - validate stored answer
+            if (existingQuestion.correctAnswer && !['True', 'False'].includes(existingQuestion.correctAnswer)) {
+              return res.status(400).json({ 
+                message: "Existing correct answer is invalid. Please provide a new correctAnswer." 
+              })
+            }
+          }
+          
+          // Set options for true_false and clear incompatible fields
+          if (typeIsChanging) {
+            updateData.options = ['True', 'False']
+            updateData.expectedOutput = null
+            updateData.testCases = null
+          }
+        }
+        // Handle coding/descriptive types
+        else if (effectiveQuestionType === 'coding' || effectiveQuestionType === 'short_answer') {
+          if (expectedOutput !== undefined) updateData.expectedOutput = expectedOutput
+          if (testCases !== undefined) updateData.testCases = testCases
+          
+          // Clear MCQ-specific fields when changing to coding/short_answer
+          if (typeIsChanging) {
+            updateData.options = null
+            updateData.correctAnswer = null
+          }
+        }
+        // Handle any other updates for non-type-specific fields
+        else {
+          if (options !== undefined) updateData.options = options
+          if (correctAnswer !== undefined) updateData.correctAnswer = correctAnswer
+          if (expectedOutput !== undefined) updateData.expectedOutput = expectedOutput
+          if (testCases !== undefined) updateData.testCases = testCases
+        }
+
+        const question = await storage.updateQuestion(questionId, updateData)
+        if (!question) {
+          return res.status(404).json({ message: "Question not found" })
+        }
+
+        res.json(question)
+      } catch (error) {
+        console.error("Update question error:", error)
+        res.status(500).json({ message: "Internal server error" })
+      }
+    },
+  )
+
+  app.delete(
+    "/api/rounds/:roundId/questions/:questionId",
+    requireAuth,
+    requireEventAdmin,
+    requireRoundAccess,
+    async (req: AuthRequest, res: Response) => {
+      try {
+        const { questionId, roundId } = req.params
+
+        const existingQuestion = await storage.getQuestion(questionId)
+        if (!existingQuestion) {
+          return res.status(404).json({ message: "Question not found" })
+        }
+
+        if (existingQuestion.roundId !== roundId) {
+          return res.status(400).json({ message: "Question does not belong to this round" })
+        }
+
+        await storage.deleteQuestion(questionId)
+
+        res.status(204).send()
+      } catch (error) {
+        console.error("Delete question error:", error)
         res.status(500).json({ message: "Internal server error" })
       }
     },
