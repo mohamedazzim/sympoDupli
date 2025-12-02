@@ -32,9 +32,9 @@ export default function EventCreatePage() {
     defaultValues: {
       name: '',
       description: '',
-      type: 'general',
+      type: 'technical',
       category: 'technical',
-      status: 'draft',
+      status: 'active',
       createdBy: user?.id || '',
       startDate: '',
       endDate: '',
@@ -131,14 +131,14 @@ export default function EventCreatePage() {
 
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category</FormLabel>
+                      <FormLabel>Event Type</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-category">
-                            <SelectValue placeholder="Select category" />
+                          <SelectTrigger data-testid="select-type">
+                            <SelectValue placeholder="Select event type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>

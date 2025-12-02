@@ -39,9 +39,9 @@ export default function EventEditPage() {
     defaultValues: {
       name: '',
       description: '',
-      type: 'quiz',
+      type: 'technical',
       category: 'technical',
-      status: 'draft',
+      status: 'active',
       createdBy: '',
       startDate: '',
       endDate: '',
@@ -204,10 +204,8 @@ export default function EventEditPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="quiz">Quiz</SelectItem>
-                          <SelectItem value="coding">Coding</SelectItem>
-                          <SelectItem value="general">General</SelectItem>
-                          <SelectItem value="mixed">Mixed</SelectItem>
+                          <SelectItem value="technical">Technical</SelectItem>
+                          <SelectItem value="non_technical">Non-Technical</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -228,7 +226,6 @@ export default function EventEditPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                         </SelectContent>

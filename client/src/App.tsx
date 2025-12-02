@@ -42,6 +42,7 @@ import MyTestsPage from "@/pages/participant/my-tests";
 import LeaderboardPage from "@/pages/participant/leaderboard";
 import RegistrationFormsPage from "@/pages/admin/registration-forms";
 import RegistrationFormCreatePage from "@/pages/admin/registration-form-create";
+import RegistrationFormEditPage from "@/pages/admin/registration-form-edit";
 import AdminRegistrationsPage from "@/pages/admin/registrations";
 import RegistrationCommitteePage from "@/pages/admin/registration-committee";
 import RegistrationCommitteeCreatePage from "@/pages/admin/registration-committee-create";
@@ -147,6 +148,9 @@ function Router() {
       </Route>
       <Route path="/admin/registration-forms/create">
         <ProtectedRoute component={RegistrationFormCreatePage} allowedRoles={['super_admin']} />
+      </Route>
+      <Route path="/admin/registration-forms/:id/edit">
+        <ProtectedRoute component={RegistrationFormEditPage} allowedRoles={['super_admin']} />
       </Route>
       <Route path="/admin/registrations">
         <ProtectedRoute component={AdminRegistrationsPage} allowedRoles={['super_admin']} />

@@ -63,14 +63,21 @@ export default function EventsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      draft: 'secondary',
       active: 'default',
-      completed: 'destructive',
+      completed: 'secondary',
     };
 
     return (
       <Badge variant={variants[status] || 'default'} data-testid={`badge-${status}`}>
         {status}
+      </Badge>
+    );
+  };
+
+  const getTypeBadge = (type: string) => {
+    return (
+      <Badge variant="outline" data-testid={`badge-type-${type}`}>
+        {type === 'technical' ? 'Technical' : 'Non-Technical'}
       </Badge>
     );
   };
@@ -117,7 +124,6 @@ export default function EventsPage() {
                   <TableRow>
                     <TableHead>Event Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead>Start Date</TableHead>
                     <TableHead>End Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -129,8 +135,7 @@ export default function EventsPage() {
                       <TableCell className="font-medium" data-testid={`text-event-name-${event.id}`}>
                         {event.name}
                       </TableCell>
-                      <TableCell>{event.type}</TableCell>
-                      <TableCell>{getStatusBadge(event.status)}</TableCell>
+                      <TableCell>{getTypeBadge(event.type)}</TableCell>
                       <TableCell>
                         {event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}
                       </TableCell>

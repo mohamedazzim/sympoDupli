@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "wouter";
-import { Copy, Plus } from "lucide-react";
+import { Copy, Plus, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -124,6 +124,16 @@ export default function RegistrationFormsPage() {
                           <Copy className="h-4 w-4 mr-2" />
                           Copy
                         </Button>
+                        <Link href={`/admin/registration-forms/${form.id}/edit`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            data-testid={`button-edit-${form.id}`}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>

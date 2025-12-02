@@ -130,7 +130,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.4"
+    "drizzle-kit": "^0.31.7"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"

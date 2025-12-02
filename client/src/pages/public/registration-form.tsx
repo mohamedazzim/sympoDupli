@@ -253,7 +253,17 @@ export default function PublicRegistrationFormPage() {
   return (
     <div className="min-h-screen bg-muted/30 p-4 py-8" data-testid="page-registration-form">
       <div className="w-full max-w-4xl mx-auto space-y-6">
-        <Card className="border-2">
+        <Card className="border-2 overflow-hidden">
+          {form.headerImage && (
+            <div className="w-full" data-testid="header-image-container">
+              <img 
+                src={form.headerImage} 
+                alt={`${form.title} header`}
+                className="w-full h-48 object-cover"
+                data-testid="header-image"
+              />
+            </div>
+          )}
           <CardHeader className="space-y-3">
             <CardTitle className="text-3xl" data-testid="form-title">{form.title}</CardTitle>
             {form.description && (

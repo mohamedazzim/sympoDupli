@@ -2162,14 +2162,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/registration-forms", requireAuth, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
     try {
-      const { title, description, formFields } = req.body
+      const { title, description, formFields, headerImage } = req.body
 
       if (!title || !formFields || !Array.isArray(formFields)) {
         return res.status(400).json({ message: "Title and formFields are required" })
       }
 
       const slug = generateFormSlug(title)
-      const form = await storage.createRegistrationForm(title, description || "", formFields, slug)
+      const form = await storage.createRegistrationForm(title, description || "", formFields, slug, headerImage || null)
 
       res.status(201).json(form)
     } catch (error) {
@@ -2211,6 +2211,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(forms)
     } catch (error) {
       console.error("Get all registration forms error:", error)
+      res.status(500).json({ message: "Internal server error" })
+    }
+  })
+
+  app.get("/api/registration-forms/:id/details", requireAuth, requireSuperAdmin, async (req: AuthRequest, res: Response) => {
+    try {
+      const form = await storage.getRegistrationFormById(req.params.id)
+      if (!form) {
+        return res.status(404).json({ message: "Form not found" })
+      }
+      res.json(form)
+    } catch (error) {
+      console.error("Get registration form by id error:", error)
       res.status(500).json({ message: "Internal server error" })
     }
   })

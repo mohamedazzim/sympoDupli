@@ -22,11 +22,11 @@ export const events = pgTable("events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), // quiz, coding, general, etc.
+  type: varchar("type", { enum: ['technical', 'non_technical'] }).notNull().default('technical'), // technical or non-technical
   category: varchar("category", { enum: ['technical', 'non_technical'] }).notNull().default('technical'),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
-  status: text("status").notNull().default('draft'), // draft, active, completed
+  status: varchar("status", { enum: ['active', 'completed'] }).notNull().default('active'), // active, completed
   createdBy: varchar("created_by").references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -168,11 +168,13 @@ export const registrationForms = pgTable("registration_forms", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
   description: text("description"),
+  headerImage: text("header_image"), // URL or base64 encoded image for form header
   formSlug: varchar("form_slug").unique().notNull(),
   formFields: jsonb("form_fields").notNull().$type<Array<{id: string, label: string, type: 'text' | 'email' | 'tel' | 'number', required: boolean, placeholder?: string}>>(),
   allowedCategories: jsonb("allowed_categories").notNull().default(sql`'["technical", "non_technical"]'::jsonb`).$type<Array<'technical' | 'non_technical'>>(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Registrations - submissions from public registration forms

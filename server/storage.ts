@@ -805,12 +805,13 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async createRegistrationForm(title: string, description: string, formFields: any[], slug: string): Promise<RegistrationForm> {
+  async createRegistrationForm(title: string, description: string, formFields: any[], slug: string, headerImage?: string | null): Promise<RegistrationForm> {
     const [form] = await db.insert(registrationForms).values({ 
       title, 
       description, 
       formSlug: slug, 
       formFields,
+      headerImage: headerImage || null,
       isActive: true 
     }).returning();
     return form;
@@ -818,6 +819,11 @@ export class DatabaseStorage implements IStorage {
 
   async getRegistrationFormBySlug(slug: string): Promise<RegistrationForm | undefined> {
     const [form] = await db.select().from(registrationForms).where(eq(registrationForms.formSlug, slug));
+    return form;
+  }
+
+  async getRegistrationFormById(id: string): Promise<RegistrationForm | undefined> {
+    const [form] = await db.select().from(registrationForms).where(eq(registrationForms.id, id));
     return form;
   }
 
