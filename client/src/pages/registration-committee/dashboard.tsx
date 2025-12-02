@@ -2,12 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, CheckCircle, Clock, Download } from "lucide-react";
+import { ClipboardList, CheckCircle, Clock, Download, UserPlus } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import RegistrationCommitteeLayout from "@/components/layouts/RegistrationCommitteeLayout";
-import type { Registration, Event } from "@shared/schema";
+import type { Registration, Event, User, EventCredential } from "@shared/schema";
+
+type OnSpotParticipant = User & {
+  eventCredentials: Array<EventCredential & { event: Event }>;
+};
 
 export default function RegistrationCommitteeDashboard() {
   const { toast } = useToast();
@@ -20,9 +24,14 @@ export default function RegistrationCommitteeDashboard() {
     queryKey: ['/api/events'],
   });
 
+  const { data: onSpotParticipants } = useQuery<OnSpotParticipant[]>({
+    queryKey: ['/api/registration-committee/participants'],
+  });
+
   const totalRegistrations = registrations?.length || 0;
   const pendingRegistrations = registrations?.filter(r => r.paymentStatus === 'pending').length || 0;
   const approvedRegistrations = registrations?.filter(r => r.paymentStatus === 'paid').length || 0;
+  const onSpotCount = onSpotParticipants?.length || 0;
 
   const approvedList = registrations?.filter(r => r.paymentStatus === 'paid') || [];
 
@@ -94,9 +103,9 @@ export default function RegistrationCommitteeDashboard() {
           <p className="text-muted-foreground">Registration Committee Overview</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-6">
+        <div className="grid gap-6 md:grid-cols-4 mb-6">
           <Card data-testid="card-total">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium">Total Registrations</CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -106,7 +115,7 @@ export default function RegistrationCommitteeDashboard() {
           </Card>
 
           <Card data-testid="card-pending">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
@@ -116,12 +125,22 @@ export default function RegistrationCommitteeDashboard() {
           </Card>
 
           <Card data-testid="card-approved">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium">Approved</CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600" data-testid="stat-approved">{approvedRegistrations}</div>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-onspot">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+              <CardTitle className="text-sm font-medium">On-Spot Registrations</CardTitle>
+              <UserPlus className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600" data-testid="stat-onspot">{onSpotCount}</div>
             </CardContent>
           </Card>
         </div>

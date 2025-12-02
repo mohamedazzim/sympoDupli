@@ -140,7 +140,7 @@ export default function OnSpotRegistrationPage() {
     },
   });
 
-  const availableEvents = events?.filter(e => e.status === 'active' || e.status === 'draft') || [];
+  const availableEvents = events?.filter(e => e.status === 'active') || [];
   const technicalEvents = availableEvents.filter(e => e.category === 'technical');
   const nonTechnicalEvents = availableEvents.filter(e => e.category === 'non_technical');
 
@@ -151,6 +151,32 @@ export default function OnSpotRegistrationPage() {
   const selectedNonTechnicalCount = selectedEvents?.filter(id => 
     nonTechnicalEvents.some(e => e.id === id)
   ).length || 0;
+
+  // Helper function to check if an event conflicts with already selected events (same start time)
+  const hasStartTimeConflict = (eventId: string): { hasConflict: boolean; conflictingEvent?: string } => {
+    const eventToCheck = availableEvents.find(e => e.id === eventId);
+    if (!eventToCheck || !eventToCheck.startDate) return { hasConflict: false };
+    
+    const eventStartTime = new Date(eventToCheck.startDate).getTime();
+    
+    for (const selectedId of selectedEvents || []) {
+      if (selectedId === eventId) continue;
+      const selectedEvent = availableEvents.find(e => e.id === selectedId);
+      if (selectedEvent?.startDate) {
+        const selectedStartTime = new Date(selectedEvent.startDate).getTime();
+        if (eventStartTime === selectedStartTime) {
+          return { hasConflict: true, conflictingEvent: selectedEvent.name };
+        }
+      }
+    }
+    return { hasConflict: false };
+  };
+
+  // Check if an event is disabled due to start time conflict
+  const isEventDisabledByConflict = (eventId: string): boolean => {
+    if (selectedEvents?.includes(eventId)) return false; // Already selected, allow unchecking
+    return hasStartTimeConflict(eventId).hasConflict;
+  };
 
   const copyAllCredentials = () => {
     if (credentials) {
@@ -349,77 +375,101 @@ export default function OnSpotRegistrationPage() {
                           {technicalEvents.length > 0 && (
                             <div className="space-y-2">
                               <h3 className="font-medium text-sm">Technical Events</h3>
-                              {technicalEvents.map((event) => (
-                                <FormField
-                                  key={event.id}
-                                  control={form.control}
-                                  name="selectedEvents"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={event.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(event.id)}
-                                            disabled={!field.value?.includes(event.id) && selectedTechnicalCount >= 1}
-                                            onCheckedChange={(checked) => {
-                                              return checked
-                                                ? field.onChange([...field.value, event.id])
-                                                : field.onChange(
-                                                    field.value?.filter((value) => value !== event.id)
-                                                  );
-                                            }}
-                                            data-testid={`checkbox-event-${event.id}`}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="font-normal cursor-pointer">
-                                          {event.name}
-                                        </FormLabel>
-                                      </FormItem>
-                                    );
-                                  }}
-                                />
-                              ))}
+                              {technicalEvents.map((event) => {
+                                const conflict = hasStartTimeConflict(event.id);
+                                return (
+                                  <FormField
+                                    key={event.id}
+                                    control={form.control}
+                                    name="selectedEvents"
+                                    render={({ field }) => {
+                                      const isDisabled = !field.value?.includes(event.id) && 
+                                        (selectedTechnicalCount >= 1 || isEventDisabledByConflict(event.id));
+                                      return (
+                                        <FormItem
+                                          key={event.id}
+                                          className="flex flex-row items-start space-x-3 space-y-0"
+                                        >
+                                          <FormControl>
+                                            <Checkbox
+                                              checked={field.value?.includes(event.id)}
+                                              disabled={isDisabled}
+                                              onCheckedChange={(checked) => {
+                                                return checked
+                                                  ? field.onChange([...field.value, event.id])
+                                                  : field.onChange(
+                                                      field.value?.filter((value) => value !== event.id)
+                                                    );
+                                              }}
+                                              data-testid={`checkbox-event-${event.id}`}
+                                            />
+                                          </FormControl>
+                                          <div className="flex flex-col">
+                                            <FormLabel className={`font-normal cursor-pointer ${isDisabled && conflict.hasConflict ? 'text-muted-foreground' : ''}`}>
+                                              {event.name}
+                                            </FormLabel>
+                                            {isDisabled && conflict.hasConflict && (
+                                              <span className="text-xs text-destructive">
+                                                Conflicts with {conflict.conflictingEvent}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </FormItem>
+                                      );
+                                    }}
+                                  />
+                                );
+                              })}
                             </div>
                           )}
                           {nonTechnicalEvents.length > 0 && (
                             <div className="space-y-2">
                               <h3 className="font-medium text-sm">Non-Technical Events</h3>
-                              {nonTechnicalEvents.map((event) => (
-                                <FormField
-                                  key={event.id}
-                                  control={form.control}
-                                  name="selectedEvents"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={event.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(event.id)}
-                                            disabled={!field.value?.includes(event.id) && selectedNonTechnicalCount >= 1}
-                                            onCheckedChange={(checked) => {
-                                              return checked
-                                                ? field.onChange([...field.value, event.id])
-                                                : field.onChange(
-                                                    field.value?.filter((value) => value !== event.id)
-                                                  );
-                                            }}
-                                            data-testid={`checkbox-event-${event.id}`}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="font-normal cursor-pointer">
-                                          {event.name}
-                                        </FormLabel>
-                                      </FormItem>
-                                    );
-                                  }}
-                                />
-                              ))}
+                              {nonTechnicalEvents.map((event) => {
+                                const conflict = hasStartTimeConflict(event.id);
+                                return (
+                                  <FormField
+                                    key={event.id}
+                                    control={form.control}
+                                    name="selectedEvents"
+                                    render={({ field }) => {
+                                      const isDisabled = !field.value?.includes(event.id) && 
+                                        (selectedNonTechnicalCount >= 1 || isEventDisabledByConflict(event.id));
+                                      return (
+                                        <FormItem
+                                          key={event.id}
+                                          className="flex flex-row items-start space-x-3 space-y-0"
+                                        >
+                                          <FormControl>
+                                            <Checkbox
+                                              checked={field.value?.includes(event.id)}
+                                              disabled={isDisabled}
+                                              onCheckedChange={(checked) => {
+                                                return checked
+                                                  ? field.onChange([...field.value, event.id])
+                                                  : field.onChange(
+                                                      field.value?.filter((value) => value !== event.id)
+                                                    );
+                                              }}
+                                              data-testid={`checkbox-event-${event.id}`}
+                                            />
+                                          </FormControl>
+                                          <div className="flex flex-col">
+                                            <FormLabel className={`font-normal cursor-pointer ${isDisabled && conflict.hasConflict ? 'text-muted-foreground' : ''}`}>
+                                              {event.name}
+                                            </FormLabel>
+                                            {isDisabled && conflict.hasConflict && (
+                                              <span className="text-xs text-destructive">
+                                                Conflicts with {conflict.conflictingEvent}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </FormItem>
+                                      );
+                                    }}
+                                  />
+                                );
+                              })}
                             </div>
                           )}
                         </div>

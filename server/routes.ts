@@ -82,11 +82,22 @@ async function validateEventSelection(eventIds: string[]): Promise<{ valid: bool
     return { valid: false, error: "Only one non-technical event can be selected" }
   }
 
+  // Check for events with the same start time (event-level conflict)
   for (let i = 0; i < events.length; i++) {
     for (let j = i + 1; j < events.length; j++) {
       const e1 = events[i]
       const e2 = events[j]
 
+      // Check if both events have the same start date/time
+      if (e1.startDate && e2.startDate) {
+        const e1StartTime = new Date(e1.startDate).getTime()
+        const e2StartTime = new Date(e2.startDate).getTime()
+        if (e1StartTime === e2StartTime) {
+          return { valid: false, error: `Events "${e1.name}" and "${e2.name}" have the same start time and cannot be selected together` }
+        }
+      }
+
+      // Also check round-level overlaps
       const e1Rounds = await storage.getRoundsByEvent(e1.id)
       const e2Rounds = await storage.getRoundsByEvent(e2.id)
 
