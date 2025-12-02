@@ -80,6 +80,51 @@ A comprehensive React-based web application for managing symposium events with r
 - Credential management (CSV/PDF export)
 - Super admin override capabilities with audit logging
 
+## Security Fixes & Audit (December 2, 2025)
+
+### Critical Security Fixes
+1. **Event Credential Password Authentication**
+   - Fixed: Plain text password comparison now uses bcrypt.compare()
+   - Location: `/api/auth/login` endpoint
+   - Impact: Protects participant test credentials
+
+2. **Test Access Validation**
+   - Added check for disabled test credentials before login
+   - Prevents access by disabled participants
+   - Returns 403 Forbidden if access disabled
+
+3. **Input Validation Hardening**
+   - Username: 3-50 characters, alphanumeric + underscore/hyphen only
+   - Password: Minimum 8 characters
+   - Email: Proper RFC format validation
+   - Full Name: Minimum 2 characters, whitespace trimmed
+   - Type safety: String type validation on all inputs
+
+### Business Logic Validation
+1. **Event Date Validation**
+   - Start date must be before end date
+   - Start date cannot be in the past
+   - Prevents impossible event schedules
+
+2. **Race Condition Prevention**
+   - Event deletion now verifies event exists before deletion
+   - Prevents cascade delete errors on already-deleted events
+
+3. **Authorization Enforcement**
+   - Event admins can only manage questions for assigned events
+   - Participants can only view their assigned event credentials
+   - Super admin overrides properly logged with IP address
+
+### All Audited Modules
+✅ Authentication (login/register)
+✅ Event management (create/update/delete)
+✅ Event credentials (participant test access)
+✅ Question management (CRUD operations)
+✅ Round management (scheduling/validation)
+✅ Participant registration
+✅ Test attempt tracking
+✅ Super admin overrides (audit logging)
+
 ## Recent Updates (December 2, 2025)
 ### Question Management for Event Admins
 - Added DELETE endpoint (`/api/rounds/:roundId/questions/:questionId`) with proper authorization
@@ -91,3 +136,10 @@ A comprehensive React-based web application for managing symposium events with r
 - Frontend question edit page with full form validation
 - Delete confirmation dialog in round-questions page
 - Authorization: Only assigned event admins can manage questions for their events
+
+### Comprehensive Security Audit Completed
+- Fixed critical event credential password authentication loophole
+- Enhanced input validation on all user-facing endpoints
+- Validated event scheduling logic prevents impossible dates
+- Prevented race conditions in event deletion
+- All authorization checks verified and enforced
