@@ -41,24 +41,41 @@ export default function RegistrationCommitteeDashboard() {
     return event?.name || eventId;
   };
 
-  const getFieldValue = (submittedData: Record<string, string>, fieldLabel: string): string => {
+  const extractParticipantInfo = (submittedData: Record<string, string>) => {
     const entries = Object.entries(submittedData);
+    let name = 'N/A';
+    let email = 'N/A';
+    let phone = 'N/A';
+    let college = 'N/A';
     
-    if (fieldLabel.toLowerCase().includes('name')) {
-      const nameEntry = entries.find(([k, v]) => 
-        v && typeof v === 'string' && v.includes(' ') && !v.includes('@')
-      );
-      return nameEntry ? nameEntry[1] : 'N/A';
+    for (const [key, value] of entries) {
+      if (!value || typeof value !== 'string') continue;
+      const lowerKey = key.toLowerCase();
+      const trimmedValue = value.trim();
+      
+      if (lowerKey.includes('email') || trimmedValue.includes('@')) {
+        email = trimmedValue;
+      } else if (lowerKey.includes('phone') || lowerKey.includes('mobile') || lowerKey.includes('contact')) {
+        phone = trimmedValue;
+      } else if (lowerKey.includes('college') || lowerKey.includes('institution') || lowerKey.includes('school') || lowerKey.includes('university')) {
+        college = trimmedValue;
+      } else if (lowerKey.includes('name') && !lowerKey.includes('college') && !lowerKey.includes('institution')) {
+        name = trimmedValue;
+      }
     }
     
-    if (fieldLabel.toLowerCase().includes('email')) {
-      const emailEntry = entries.find(([k, v]) => 
-        v && typeof v === 'string' && v.includes('@')
-      );
-      return emailEntry ? emailEntry[1] : 'N/A';
+    if (name === 'N/A') {
+      const nameEntry = entries.find(([k, v]) => {
+        if (!v || typeof v !== 'string') return false;
+        const lowerK = k.toLowerCase();
+        return !lowerK.includes('college') && !lowerK.includes('institution') && 
+               !lowerK.includes('school') && !lowerK.includes('university') &&
+               !v.includes('@') && v.includes(' ') && v.length < 50;
+      });
+      if (nameEntry) name = nameEntry[1];
     }
     
-    return 'N/A';
+    return { name, email, phone, college };
   };
 
   const downloadPDF = () => {
@@ -72,10 +89,9 @@ export default function RegistrationCommitteeDashboard() {
     }
 
     const content = approvedList.map((reg, index) => {
-      const name = getFieldValue(reg.submittedData, 'name');
-      const email = getFieldValue(reg.submittedData, 'email');
+      const info = extractParticipantInfo(reg.submittedData);
       const eventNames = reg.selectedEvents?.map(id => getEventName(id)).join(', ') || 'None';
-      return `${index + 1}. ${name} - ${email} - Events: ${eventNames}`;
+      return `${index + 1}. ${info.name} - ${info.email} - ${info.phone} - ${info.college} - Events: ${eventNames}`;
     }).join('\n');
 
     const fullContent = `APPROVED PARTICIPANTS LIST\n\nTotal Approved: ${approvedList.length}\n\n${content}`;
@@ -171,7 +187,7 @@ export default function RegistrationCommitteeDashboard() {
         </Card>
 
         {approvedList.length > 0 && (
-          <Card data-testid="card-approved-list">
+          <Card data-testid="card-approved-list" className="mt-6">
             <CardHeader>
               <CardTitle>Approved Participants</CardTitle>
               <CardDescription>All approved and registered participants</CardDescription>
@@ -182,42 +198,53 @@ export default function RegistrationCommitteeDashboard() {
                   <TableRow>
                     <TableHead>#</TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Selected Events</TableHead>
+                    <TableHead>Registered Events</TableHead>
+                    <TableHead>College Name</TableHead>
                     <TableHead>Approved Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {approvedList.map((registration, index) => (
-                    <TableRow key={registration.id} data-testid={`row-approved-${registration.id}`}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell data-testid={`text-name-${registration.id}`}>
-                        {getFieldValue(registration.submittedData, 'name')}
-                      </TableCell>
-                      <TableCell data-testid={`text-email-${registration.id}`}>
-                        {getFieldValue(registration.submittedData, 'email')}
-                      </TableCell>
-                      <TableCell data-testid={`text-events-${registration.id}`}>
-                        <div className="flex flex-wrap gap-1">
-                          {registration.selectedEvents && registration.selectedEvents.length > 0 ? (
-                            registration.selectedEvents.map((eventId) => (
-                              <Badge key={eventId} variant="outline" className="text-xs">
-                                {getEventName(eventId)}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No events</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell data-testid={`text-date-${registration.id}`}>
-                        {registration.processedAt 
-                          ? new Date(registration.processedAt).toLocaleDateString()
-                          : new Date(registration.submittedAt).toLocaleDateString()
-                        }
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {approvedList.map((registration, index) => {
+                    const info = extractParticipantInfo(registration.submittedData);
+                    return (
+                      <TableRow key={registration.id} data-testid={`row-approved-${registration.id}`}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell data-testid={`text-name-${registration.id}`}>
+                          {info.name}
+                        </TableCell>
+                        <TableCell data-testid={`text-phone-${registration.id}`}>
+                          {info.phone}
+                        </TableCell>
+                        <TableCell data-testid={`text-email-${registration.id}`}>
+                          {info.email}
+                        </TableCell>
+                        <TableCell data-testid={`text-events-${registration.id}`}>
+                          <div className="flex flex-wrap gap-1">
+                            {registration.selectedEvents && registration.selectedEvents.length > 0 ? (
+                              registration.selectedEvents.map((eventId) => (
+                                <Badge key={eventId} variant="outline" className="text-xs">
+                                  {getEventName(eventId)}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-sm">No events</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell data-testid={`text-college-${registration.id}`}>
+                          {info.college}
+                        </TableCell>
+                        <TableCell data-testid={`text-date-${registration.id}`}>
+                          {registration.processedAt 
+                            ? new Date(registration.processedAt).toLocaleDateString()
+                            : new Date(registration.submittedAt).toLocaleDateString()
+                          }
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
