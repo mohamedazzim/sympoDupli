@@ -357,13 +357,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, try event credential login (for participants)
       const eventCredential = await storage.getEventCredentialByUsername(username)
       if (eventCredential) {
-        // Try bcrypt compare first (for hashed passwords), then plain text compare (for legacy)
+        // Check if password is a bcrypt hash (starts with $2a$, $2b$, or $2y$ and is 60 chars)
+        const storedPassword = eventCredential.eventPassword
+        const isBcryptHash = storedPassword.length === 60 && storedPassword.startsWith('$2')
+        
         let isValidPassword = false
-        try {
-          isValidPassword = await bcrypt.compare(password, eventCredential.eventPassword)
-        } catch {
-          // If bcrypt fails (not a valid hash), try plain text comparison for legacy passwords
-          isValidPassword = password === eventCredential.eventPassword
+        if (isBcryptHash) {
+          // Compare with bcrypt for hashed passwords
+          isValidPassword = await bcrypt.compare(password, storedPassword)
+        } else {
+          // Plain text comparison for legacy passwords
+          isValidPassword = password === storedPassword
         }
         
         if (!isValidPassword) {
