@@ -28,10 +28,11 @@ export default function RegistrationCommitteeDashboard() {
     queryKey: ['/api/registration-committee/participants'],
   });
 
-  const totalRegistrations = registrations?.length || 0;
+  const formRegistrations = registrations?.length || 0;
   const pendingRegistrations = registrations?.filter(r => r.paymentStatus === 'pending').length || 0;
   const approvedRegistrations = registrations?.filter(r => r.paymentStatus === 'paid').length || 0;
   const onSpotCount = onSpotParticipants?.length || 0;
+  const totalRegistrations = formRegistrations + onSpotCount;
 
   const approvedList = registrations?.filter(r => r.paymentStatus === 'paid') || [];
 
