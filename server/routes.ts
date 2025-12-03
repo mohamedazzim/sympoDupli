@@ -51,8 +51,42 @@ function generateHumanReadableCredentials(
   const capitalizedPasswordPrefix = passwordPrefix.charAt(0).toUpperCase() + passwordPrefix.slice(1).toLowerCase()
 
   return {
-    username: `${eventPrefix}${namePrefix}`,
+    username: `${eventPrefix}${namePrefix}${counter}`,
     password: `${capitalizedPasswordPrefix}@${counter}`,
+  }
+}
+
+async function generateUniqueEventCredentials(
+  fullName: string,
+  eventName: string,
+  baseCounter: number,
+): Promise<{ username: string; password: string }> {
+  let counter = baseCounter
+  let maxAttempts = 100
+  
+  while (maxAttempts > 0) {
+    const credentials = generateHumanReadableCredentials(fullName, eventName, counter)
+    const existing = await storage.getEventCredentialByUsername(credentials.username)
+    
+    if (!existing) {
+      return credentials
+    }
+    
+    counter++
+    maxAttempts--
+  }
+  
+  const randomSuffix = nanoid(4)
+  const firstName = fullName.split(" ")[0]
+  const cleanEventName = eventName.toLowerCase().replace(/[^a-z0-9]/g, "")
+  const eventPrefix = cleanEventName.substring(0, 3)
+  const namePrefix = firstName.toLowerCase().substring(0, 4)
+  const passwordPrefix = firstName.substring(0, 3)
+  const capitalizedPasswordPrefix = passwordPrefix.charAt(0).toUpperCase() + passwordPrefix.slice(1).toLowerCase()
+  
+  return {
+    username: `${eventPrefix}${namePrefix}${randomSuffix}`,
+    password: `${capitalizedPasswordPrefix}@${baseCounter}`,
   }
 }
 
@@ -2408,7 +2442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const count = await storage.getEventCredentialCountForEvent(eventId)
         const counter = count + 1
-        const { username: eventUsername, password: eventPassword } = generateHumanReadableCredentials(
+        const { username: eventUsername, password: eventPassword } = await generateUniqueEventCredentials(
           fullName,
           event.name,
           counter,
@@ -2522,7 +2556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const count = await storage.getEventCredentialCountForEvent(eventId)
           const counter = count + 1
-          const { username: eventUsername, password: eventPassword } = generateHumanReadableCredentials(
+          const { username: eventUsername, password: eventPassword } = await generateUniqueEventCredentials(
             fullName,
             event.name,
             counter,
