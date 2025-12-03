@@ -357,15 +357,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, try event credential login (for participants)
       const eventCredential = await storage.getEventCredentialByUsername(username)
       if (eventCredential) {
-        // SECURITY FIX: Verify password using bcrypt comparison instead of plain text
-        const isValidPassword = await bcrypt.compare(password, eventCredential.eventPassword)
+        // Try bcrypt compare first (for hashed passwords), then plain text compare (for legacy)
+        let isValidPassword = false
+        try {
+          isValidPassword = await bcrypt.compare(password, eventCredential.eventPassword)
+        } catch {
+          // If bcrypt fails (not a valid hash), try plain text comparison for legacy passwords
+          isValidPassword = password === eventCredential.eventPassword
+        }
+        
         if (!isValidPassword) {
           return res.status(401).json({ message: "Invalid credentials" })
-        }
-
-        // Verify event credential is not disabled
-        if (!eventCredential.testEnabled) {
-          return res.status(403).json({ message: "Your test access is currently disabled" })
         }
 
         const user = await storage.getUser(eventCredential.participantUserId)
